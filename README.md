@@ -16,6 +16,7 @@ The original whitepaper and code can be found here:
  
 ## Building
 The project uses CMake to generate build files for any platform (currently only tested on Linux and OS X). 
+
     cd NvidiaCascadedShadowMapsGLM
     mkdir build && cd build
     cmake -G "Unix Makefiles" .. # NOTE: Replace "Unix Makefiles" with your platform / build tool of choice
