@@ -7,4 +7,18 @@ The original whitepaper and code can be found here:
 * http://developer.download.nvidia.com/SDK/10.5/opengl/screenshots/samples/cascaded_shadow_maps.html
 * http://developer.download.nvidia.com/SDK/10.5/opengl/src/cascaded_shadow_maps/doc/cascaded_shadow_maps.pdf
 * http://developer.download.nvidia.com/SDK/10.5/Samples/cascaded_shadow_maps.zip
+
+## Dependencies
+* GLUT (https://www.opengl.org/resources/libraries/glut/)
+* libpng (http://www.libpng.org/pub/png/libpng.html)
+* GLEW (http://glew.sourceforge.net/)
+* gml (http://glm.g-truc.net/0.9.7/index.html)
  
+## Building
+The project uses CMake to generate build files for any platform (currently only tested on Linux and OS X). 
+    cd NvidiaCascadedShadowMapsGLM
+    mkdir build && cd build
+    cmake -G "Unix Makefiles" .. # NOTE: Replace "Unix Makefiles" with your platform / build tool of choice
+    make
+    ./csm_demo_glm
+
