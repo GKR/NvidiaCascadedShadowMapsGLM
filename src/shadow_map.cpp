@@ -1,4 +1,4 @@
-#include <shadow_map.hpp> 
+#include <shadow_map.hpp>
 #include <camera.hpp>
 
 #include <iostream>
@@ -21,7 +21,7 @@ obj_BoundingSphere obj_BSphere[NUM_OBJECTS];
 ShadowMap::ShadowMap() :
     m_fbo(0),
     m_texture_array(0),
-    m_num_splits(2),
+    m_num_splits(4),
     m_depth_tex_size(2048), // 1024, 2048
     m_split_weight(0.75f) {
 
@@ -102,7 +102,7 @@ void ShadowMap::init(Camera* camera) {
   float width = camera->viewport()->width();
   float height = camera->viewport()->height();
   float ratio = width / height;
-  
+
   // note that fov is in radians here and in OpenGL it is in degrees.
   // the 0.2f factor is important because we might get artifacts at
   // the screen borders.
@@ -110,16 +110,16 @@ void ShadowMap::init(Camera* camera) {
     m_frustums[i].fov(camera_fov / 57.2957795 + 0.2f);
     m_frustums[i].ratio(ratio);
   }
-  
+
   m_bias = mat4(
-    0.5f, 0.0f, 0.0f, 0.0f, 
+    0.5f, 0.0f, 0.0f, 0.0f,
     0.0f, 0.5f, 0.0f, 0.0f,
     0.0f, 0.0f, 0.5f, 0.0f,
     0.5f, 0.5f, 0.5f, 1.0f
   );
-  
+
   update_split_distances(camera);
-  
+
   create_fbo();
   create_texture();
 }
@@ -127,20 +127,20 @@ void ShadowMap::init(Camera* camera) {
 /** */
 void ShadowMap::pre_depth_write(Camera* camera, const vec4& lightdir) {
   mat4 t_modelview = glm::lookAt(
-    vec3(0.0, 0.0, 0.0), 
-    vec3(-lightdir.x, -lightdir.y, -lightdir.z), 
+    vec3(0.0, 0.0, 0.0),
+    vec3(-lightdir.x, -lightdir.y, -lightdir.z),
     vec3(-1.0f, 0.0f, 0.0f));
-  
+
   //update_split_distances(camera);
   update_split_frustum_points(camera);
   generate_crop_matrices(t_modelview);
   m_modelview = t_modelview;
-  
+
   // Required camera matices
   mat4 t_view = camera->view_matrix();
   mat4 t_view_inverse = glm::inverse(t_view);
   mat4 t_projection = camera->projection_matrix();
-  
+
   update_far_bounds(t_projection, t_view_inverse);
   update_texture_matrices(t_projection, t_view_inverse);
 }
@@ -150,13 +150,13 @@ void ShadowMap::update_far_bounds(const mat4& projection, const mat4& view_inver
   for(int i = m_num_splits ; i < CSM_MAX_SPLITS ; i++) {
     m_far_bounds[i] = 0;
   }
-  
+
   // for every active split
   for(int i = 0 ; i < m_num_splits ; i++) {
     // f[i].fard is originally in eye space - tell's us how far we can see.
     // Here we compute it in camera homogeneous coordinates. Basically, we calculate
     // cam_proj * (0, 0, f[i].fard, 1)^t and then normalize to [0; 1]
-    
+
     Frustum& split_frustum = m_frustums[i];
     m_far_bounds[i] = 0.5f * (-split_frustum.far() * projection[2][2] + projection[3][2]) / split_frustum.far() + 0.5f;
   }
@@ -172,10 +172,10 @@ void ShadowMap::update_texture_matrices(const mat4& projection, const mat4& view
     // multiply the light's (bias*crop*proj*modelview) by the inverse camera modelview
     // so that we can transform a pixel as seen from the camera
     m_texture_matrices[i] = m_bias * m_crop_matrices[i] * view_inverse;
-    
+
     // compute a normal matrix for the same thing (to transform the normals)
     // Basically, N = ((L)^-1)^-t
-    
+
     /* TODO: Why is this here?
     glm::mat4 t_mat_nm = glm::inverse(t_mat_texture);
     t_mat_nm = glm::transpose(t_mat_nm);
@@ -200,7 +200,7 @@ void ShadowMap::create_texture() {
   if(m_texture_array) {
     glDeleteTextures(1, &m_texture_array);
   }
-  
+
   glGenTextures(1, &m_texture_array);
   glBindTexture(GL_TEXTURE_2D_ARRAY, m_texture_array);
   glTexImage3D(GL_TEXTURE_2D_ARRAY, 0, GL_DEPTH_COMPONENT24, m_depth_tex_size, m_depth_tex_size, CSM_MAX_SPLITS, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
@@ -209,21 +209,21 @@ void ShadowMap::create_texture() {
   glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
   glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
   glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL);
-  
+
   glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_COMPARE_MODE, GL_NONE);
   //glTexParameteri(GL_TEXTURE_2D_ARRAY_EXT, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_R_TO_TEXTURE);
-  
+
   glBindTexture(GL_TEXTURE_2D_ARRAY_EXT, 0);
 }
 
-/** 
- * Computes the near and far distances for every frustum slice 
+/**
+ * Computes the near and far distances for every frustum slice
  * in camera eye space - that is, at what distance does a slice start and end
 */
 void ShadowMap::update_split_distances(Camera* camera) {
   float nd = camera->frustum()->near();
   float fd = camera->frustum()->far();
-  
+
   float lambda = m_split_weight;
   float ratio = fd / nd;
   m_frustums[0].near(nd);
@@ -243,13 +243,13 @@ void ShadowMap::update_split_distances(Camera* camera) {
 void ShadowMap::update_split_frustum_points(Camera* camera) {
   vec3 center = camera->position();
   vec3 view_dir = camera->target();
-  
+
   vec3 up(0.0f, 1.0f, 0.0f);
   vec3 right = glm::cross(view_dir, up);
 
   for(int i = 0 ; i < m_num_splits ; i++) {
     Frustum& t_frustum = m_frustums[i];
-    
+
     vec3 fc = center + view_dir * t_frustum.far();
     vec3 nc = center + view_dir * t_frustum.near();
 
@@ -275,7 +275,7 @@ void ShadowMap::update_split_frustum_points(Camera* camera) {
   }
 }
 
-/** 
+/**
  * Adjust the view frustum of the light, so that it encloses the camera frustum slice fully.
  * Note that this function sets the projection matrix as it sees best fit
  * minZ is just for optimization to cull trees that do not affect the shadows
@@ -284,18 +284,18 @@ void ShadowMap::generate_crop_matrices(const mat4& t_modelview) {
   mat4 t_projection;
   for(int i = 0 ; i < m_num_splits ; i++) {
     Frustum& t_frustum = m_frustums[i];
-  
+
     vec3 tmax(-1000.0f, -1000.0f, 0.0f);
     vec3 tmin(1000.0f, 1000.0f, 0.0f);
-  
+
     // find the z-range of the current frustum as seen from the light
     // in order to increase precision
-    
+
     // note that only the z-component is need and thus
     // the multiplication can be simplified
     // transf.z = shad_modelview[2] * f.point[0].x + shad_modelview[6] * f.point[0].y + shad_modelview[10] * f.point[0].z + shad_modelview[14];
     vec4 t_transf = t_modelview * vec4(t_frustum.m_points[0], 1.0f);
-    
+
     tmin.z = t_transf.z;
     tmax.z = t_transf.z;
     for(int j = 1 ; j < 8 ; j++) {
@@ -313,9 +313,9 @@ void ShadowMap::generate_crop_matrices(const mat4& t_modelview) {
       }
       //if(transf.z - obj_BSphere[i].radius < minZ) { minZ = transf.z - obj_BSphere[i].radius; }
     }*/
-    
+
     tmax.z += 50; // TODO: This solves the dissapearing shadow problem. but how to fix?
-    
+
     mat4 t_ortho = glm::ortho(-1.0f, 1.0f, -1.0f, 1.0f, -tmax.z, -tmin.z);
     mat4 t_shad_mvp = t_ortho * t_modelview;
 
@@ -334,21 +334,21 @@ void ShadowMap::generate_crop_matrices(const mat4& t_modelview) {
 
     vec2 tscale(2.0f / (tmax.x - tmin.x), 2.0f / (tmax.y - tmin.y));
     vec2 toffset(-0.5f * (tmax.x + tmin.x) * tscale.x, -0.5f * (tmax.y + tmin.y) * tscale.y);
-    
+
     mat4 t_shad_crop;
     t_shad_crop[0][0] = tscale.x;
     t_shad_crop[1][1] = tscale.y;
     t_shad_crop[0][3] = toffset.x;
     t_shad_crop[1][3] = toffset.y;
     t_shad_crop = glm::transpose(t_shad_crop);
-    
+
     t_projection = t_shad_crop * t_ortho;
 
     //return tmin.z;
-    
+
     // Store the projection matrix
     m_projection_matrices[i] = t_projection;
-    
+
     // store the product of all shadow matries for later
     m_crop_matrices[i] = t_projection * t_modelview;
   }
