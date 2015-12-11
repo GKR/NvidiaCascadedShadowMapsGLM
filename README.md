@@ -1,5 +1,5 @@
-# Nvidia Cascaded Shadow Maps with shaders and GLM
-Modification of the Nvidia Cascading Shadow Maps demo using a pure shader based approach over immediate mode
+## Nvidia Cascaded Shadow Maps with shaders and GLM
+Modification of the Nvidia Cascading Shadow Maps demo using a pure shader based approach over immediate mode. Read more about (cascaded) shadow mapping here: https://en.wikipedia.org/wiki/Shadow_mapping
 
 ## Legal Disclamer
 The original code was not written by me, and the original copyright notices have been kept in place where applicable.
