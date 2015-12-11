@@ -25,10 +25,10 @@ uniform vec2 poissonDisk[nsamples];
 float getOccCoef(vec4 shadow_coord) {
   // get the stored depth, let the hardware do the comparison for us
   float shadow_d = shadow2DArray(shadowmap, shadow_coord).x;
-  
+
   // get the difference of the stored depth and the distance of this fragment to the light
   float diff = shadow_d - shadow_coord.w;
-  
+
   // smoothen the result a bit, to avoid aliasing at shadow contact point
   //return clamp(diff * 250.0 + 1.0, 0.0, 1.0);
   return clamp(diff * 30.0 + 1.0, 0.0, 1.0);
@@ -52,10 +52,10 @@ float shadowCoef() {
   vec4 shadow_coord = textureMatrixList[index] * position;
 
   shadow_coord.w = shadow_coord.z;
-  
+
   // tell glsl in which layer to do the look up
   shadow_coord.z = float(index);
-  
+
   float shadow_d = getOccCoef(shadow_coord);
   return shadow_d;
 }
@@ -66,12 +66,4 @@ void main() {
   float shadow_coef = shadowCoef();
   float fog = clamp(gl_Fog.scale*(gl_Fog.end + position.z), 0.0, 1.0);
   gl_FragColor = mix(gl_Fog.color, (shadow_ambient * shadow_coef * gl_Color * color_tex + (1.0 - shadow_ambient) * color_tex), fog);
-  
-  //gl_FragColor = mix(gl_Fog.color, (shadow_coef * gl_Color * color_tex), fog);
-  //gl_FragColor = mix(gl_Fog.color, (gl_Color * color_tex - (shadow_coef * vec4(0.2, 0.2, 0.2, 0.0))), fog);
-  
-  //float fog_coef = clamp(gl_Fog.scale * (gl_Fog.end + position.z), 0.0, 1.0);
-  //gl_FragColor = mix(gl_Fog.color, (0.9 * shadow_coef * gl_Color * color_tex + 0.1), fog_coef);
-  
-  //gl_FragColor = vec4(shadow_coef, shadow_coef, shadow_coef, 1.0);
 }
