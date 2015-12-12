@@ -3,6 +3,8 @@ Modification of the Nvidia Cascading Shadow Maps demo using a pure shader based 
 
 ![Screenshot](media/screenshot_001.png "Screenshot")
 
+In the lower left hand corner of the screenshot you can see the depth textures of the shadow map.
+
 ## What does it do and how does it work?
 Shadow mapping is a technique where the scene is rendered to a depth texture from the point of view of a light source, and this depth texture is again sampled during normal scene rendering to create the illusion of shadows, or "non-lit" fragments. While rendering large scenes and using only one shadow map, the shadow map resolution will become an issue where the shadows become more pixelated as the view distance increases. In modern real-time graphics rendering this can be solved by using a technique called "Cascaded Shadow Mapping", where N shadow maps are rendered for each light source, each covering a larger area of the frustum the further away from the camera it is. 
 
