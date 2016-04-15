@@ -9,7 +9,7 @@ In the lower left hand corner of the screenshot you can see the depth textures o
 Shadow mapping is a technique where the scene is rendered to a depth texture from the point of view of a light source, and this depth texture is again sampled during normal scene rendering to create the illusion of shadows, or "non-lit" fragments. While rendering large scenes and using only one shadow map, the shadow map resolution will become an issue where the shadows become more pixelated as the view distance increases. In modern real-time graphics rendering this can be solved by using a technique called "Cascaded Shadow Mapping", where N shadow maps are rendered for each light source, each covering a larger area of the frustum the further away from the camera it is. 
 
 Here we can see the camera frustum from above, and how the shadow map splits are distributed along the frustom (showing four splits)
-![CSM Splits as seen from above](http://the-witness.net/news/wp-content/gallery/valient-shaderx6-figures/figure_411.png)
+![CSM Splits as seen from above](media/screenshot_002.png "Screenshot")
 
 
 Read more about (cascaded) shadow mapping here: https://en.wikipedia.org/wiki/Shadow_mapping
